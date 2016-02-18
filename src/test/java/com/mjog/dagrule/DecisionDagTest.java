@@ -25,7 +25,7 @@ public class DecisionDagTest {
 
 	@Test
 	public void testBasicRule1() throws Exception {
-		String rules = 
+		String rules = "var v1; 5\n"+
 				"v1==0; :0; \n" +
 				"v1<3;:1;:3\n";
 		DecisionDag rx = new DecisionDag(rules);
@@ -36,7 +36,7 @@ public class DecisionDagTest {
 	public void testEmptyLines() throws Exception {
 		String rules = "r1;v1==0; :0; \n\n\n" +
 				"v1<3;:1;:3\n";
-		DecisionDag rx = new DecisionDag(rules);
+		DecisionDag rx = new DecisionDag(rules, false);
 		simpleRuleAssertionsWithV1(rx);
 	}
 	
@@ -45,7 +45,7 @@ public class DecisionDagTest {
 		String rules = 
 				"start;v1==0; :0; \n" +
 				"v1<3;:1;start\n";
-		DecisionDag rx = new DecisionDag(rules);
+		DecisionDag rx = new DecisionDag(rules, false);
 		simpleRuleAssertionsWithV1(rx);
 	}
 	
@@ -78,10 +78,10 @@ public class DecisionDagTest {
 
 	@Test(expected = RuleBadActionException.class)
 	public void testActionMissing() throws Exception {
-		String rules = 
+		String rules = "var v1;\n" +
 				"start;v1 == 0; :0; \n" +
 				"v1<3;;\n";
-		DecisionDag rx = new DecisionDag(rules);
+		new DecisionDag(rules);
 	}
 
 	@Test(expected = RuleBadActionException.class)
@@ -89,12 +89,43 @@ public class DecisionDagTest {
 		String rules = 
 				"start;v1 == 0; 0; \n" +
 				"v1<3;B;:10\n";
-		DecisionDag rx = new DecisionDag(rules);
+		new DecisionDag(rules);
 	}
 
+	@Test
+	public void testVarDecl() throws Exception {
+		String rules = "var v1;\n" +
+				"start;v1 == 0; :0; \n" +
+				"v1<3;:B;:10\n";
+		DecisionDag rx = new DecisionDag(rules);
+		assertEquals("10",rx.evaluate(null));
+	}
+
+	@Test(expected = RulesUndeclaredVariableException.class)
+	public void testUndelcaredVars() throws Exception {
+		String rules = "var v0;\n" +
+				"start;v1 == 0; :0; \n" +
+				"v1<3;:B;:10\n";
+		new DecisionDag(rules);
+	}
+	
+	@Test
+	public void testVarsContains() throws Exception {
+		String rules = "var list; ['ab', 'bc', 'de']\n" +
+				"var v1;\n"+
+				"start;v1 =~ list; :MATCH; \n" +
+				"v1 == 'xy'; :GOT XY; :SOMETHING ELSE";
+		// v1 =~ list  checks if v1 is contained in the list
+		DecisionDag rx = new DecisionDag(rules);
+		Map<String, Object> vars = new HashMap<String, Object>();
+		vars.put("v1", "ab");
+		assertEquals("MATCH", rx.evaluate(vars));
+		vars.put("v1", "xy");
+		assertEquals("GOT XY", rx.evaluate(vars));
+		vars.put("v1", "zz");
+		assertEquals("SOMETHING ELSE", rx.evaluate(vars));
+	}
 	
 	// TODO Add compile time cycle detection
 	// TODO Add Util class injection
-	// TODO Add Bound variable check? -- execute all rules with full context
-	// TODO -- variable declaration section
 }

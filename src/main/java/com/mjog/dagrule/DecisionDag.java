@@ -3,6 +3,7 @@ package com.mjog.dagrule;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -22,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 public class DecisionDag {
 	private static final JexlEngine jexl = new JexlBuilder().cache(512).strict(true).silent(false).create();
 	Map<String, RuleNode> ruleMap = new LinkedHashMap<String, RuleNode>();
+	Map<String, Object> declVars = new HashMap<String, Object>();
 	RuleNode start;
 	String EMIT_PREFIX = ":";
 
@@ -84,6 +86,17 @@ public class DecisionDag {
 		for (CSVRecord csvRecord : parser) {
 			String name = csvRecord.get("name");
 			name = StringUtils.trimToEmpty(name);
+			if (name.startsWith("var ")) {
+				// declaring a variable
+				String varname = name.substring("var ".length());
+				Object varval = "";
+				if (csvRecord.size() > 1) {
+					varval = jexl.createExpression(csvRecord.get(1)).evaluate(null);
+				}
+				declVars.put(varname, varval);
+				continue;
+			}
+			
 			if (csvRecord.size() == 1) {
 				continue;
 			}
@@ -123,6 +136,7 @@ public class DecisionDag {
 	}
 
 	public void validate() throws RulesException{
+		JexlContext vars = new MapContext(declVars);
 		// check if all targets are set and present
 		for (Map.Entry<String, RuleNode> re: ruleMap.entrySet()){
 				RuleNode rn = re.getValue();
@@ -139,21 +153,35 @@ public class DecisionDag {
 						!ruleMap.containsKey(rn.failure)){
 					throw new RuleBadActionException(rn + " BAD failure action "+rn.failure);					
 				}
-
+				
+				try {
+					rn.nextAction(vars);
+				} catch (JexlException.Variable je){
+					throw new RulesUndeclaredVariableException("Error in rule " + rn + " " + je.getMessage() + "\nGiven: " + vars);					
+				} catch (JexlException je){
+					throw new RuleExpressionException("Error in rule " + rn + " " + je.getMessage() + "\nGiven: " + vars);
+				}
 		}
+		
+		
 	}
 	
 	public String evaluate(Map<String, Object> vars) throws RulesException {
 		RuleNode rule = start;
 		String next;
 		Set<String> evaluatedRules = new LinkedHashSet<String>();
+		Map<String, Object> nvars = new HashMap<String, Object>(declVars);
+		if (vars != null) {
+			nvars.putAll(vars);
+		}
+		JexlContext jVars = new MapContext(nvars);
 
 		do {
 			if (evaluatedRules.contains(rule.name)) {
 				throw new CircularRulesException(evaluatedRules.toString() + "Form a cycle given: " + vars);
 			}
 			try {
-				next = rule.nextAction(new MapContext(vars));
+				next = rule.nextAction(jVars);
 			} catch (JexlException je) {
 				throw new RuleExpressionException("Error in rule " + rule + " " + je.getMessage() + "\nGiven: " + vars);
 			}
