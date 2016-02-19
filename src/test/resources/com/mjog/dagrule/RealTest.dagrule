@@ -1,0 +1,15 @@
+# Implementing 
+# http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html
+
+var family_visiting
+var weather
+var money
+
+start; family_visiting=="yes"; :Cinema
+
+weather=="sunny"; :Play Tennis
+weather=="rainy"; :Stay In
+weather!="windy"; :ERROR
+
+money=="rich"; :Shopping
+money=="poor"; :Cinema; :ERROR

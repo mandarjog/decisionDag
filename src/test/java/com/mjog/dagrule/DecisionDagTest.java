@@ -113,7 +113,7 @@ public class DecisionDagTest {
 
 	@Test
 	public void testVarDecl() throws Exception {
-		String rules = "var v1;\n" +
+		String rules = "var v1\n" +
 				"start;v1 == 0; :0; \n" +
 				"v1<3;:B;:10\n";
 		DecisionDag rx = new DecisionDag(rules);

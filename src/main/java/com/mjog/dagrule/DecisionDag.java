@@ -19,8 +19,12 @@ import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlExpression;
 import org.apache.commons.jexl3.MapContext;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class DecisionDag {
+	Logger logger = LoggerFactory.getLogger(DecisionDag.class);
 	private static final JexlEngine jexl = new JexlBuilder().cache(512).strict(true).silent(false).create();
 	Map<String, RuleNode> ruleMap = new LinkedHashMap<String, RuleNode>();
 	Map<String, Object> declVars = new HashMap<String, Object>();
@@ -30,15 +34,15 @@ public class DecisionDag {
 	class RuleNode {
 		private JexlExpression expr;
 		String predicate;
-		String success;
-		String failure;
+		String yes;
+		String no;
 		String name;
 
-		public RuleNode(String name, String predicate, String success, String failure, int ruleNo)
+		public RuleNode(String name, String predicate, String yes, String no, int ruleNo)
 				throws RulesException {
 			this.predicate = StringUtils.trimToEmpty(predicate);
-			this.success = StringUtils.trimToEmpty(success);
-			this.failure = StringUtils.trimToEmpty(failure);
+			this.yes = StringUtils.trimToEmpty(yes);
+			this.no = StringUtils.trimToEmpty(no);
 			this.name = StringUtils.trimToEmpty(name);
 			try {
 				this.expr = jexl.createExpression(this.predicate);
@@ -51,22 +55,22 @@ public class DecisionDag {
 			Object res = expr.evaluate(context);
 			try {
 				boolean result = (Boolean) res;
-				return result ? success : failure;
+				return result ? yes : no;
 			} catch (ClassCastException cse) {
 				throw new RuleExpressionException(toString() + "Does not return true or false");
 			}
 		}
 
 		public void setActionIfEmpty(String target) {
-			if (success.isEmpty()) {
-				success = target;
-			} else if (failure.isEmpty()) {
-				failure = target;
+			if (yes.isEmpty()) {
+				yes = target;
+			} else if (no.isEmpty()) {
+				no = target;
 			}
 		}
 
 		public String toString() {
-			return name + ">> " + predicate + "?" + success + ":" + failure + "\n";
+			return predicate + "?" + yes + ":" + no + "\n";
 		}
 	}
 
@@ -80,7 +84,7 @@ public class DecisionDag {
 
 	public DecisionDag(Reader csvData, boolean validate) throws IOException, RulesException {
 		RuleNode last = null;
-		CSVParser parser = CSVFormat.DEFAULT.withDelimiter(';').withHeader("name", "predicate", "success", "failure")
+		CSVParser parser = CSVFormat.DEFAULT.withDelimiter(';').withHeader("name", "predicate", "yes", "no")
 				.withCommentMarker('#').withIgnoreEmptyLines(false).parse(csvData);
 		int ruleNo = 0;
 		for (CSVRecord csvRecord : parser) {
@@ -102,21 +106,23 @@ public class DecisionDag {
 				continue;
 			}
 			String predicate = csvRecord.get("predicate");
-			String success = csvRecord.get("success");
-			String failure = "";
-
+			String yes = "";
+			String no = "";
+			if (csvRecord.size() > 2) {
+				yes = csvRecord.get("yes");
+			}
 			if (csvRecord.size() > 3) {
-				failure = csvRecord.get("failure");
+				no = csvRecord.get("no");
 			}
 			if (!name.isEmpty() && !StringUtils.isAlphanumeric(name)) {
 				// shift all args left by 1, there is no name for this rule
-				failure = success;
-				success = predicate;
+				no = yes;
+				yes = predicate;
 				predicate = name;
 				name = "";
 			}
 			name = name.isEmpty() ? "auto_" + csvRecord.getRecordNumber() : name;
-			RuleNode ruleNode = new RuleNode(name, predicate, success, failure, ruleNo);
+			RuleNode ruleNode = new RuleNode(name, predicate, yes, no, ruleNo);
 			ruleNo++;
 			if (start == null) {
 				start = ruleNode;
@@ -131,6 +137,7 @@ public class DecisionDag {
 		if (validate) {
 			validate();
 		}
+		logger.info("Loaded Rules: "+ruleMap);
 	}
 
 	public DecisionDag(Reader csvData) throws IOException, RulesException {
@@ -142,16 +149,16 @@ public class DecisionDag {
 		// check if all targets are set and present
 		for (Map.Entry<String, RuleNode> re : ruleMap.entrySet()) {
 			RuleNode rn = re.getValue();
-			if (rn.success.isEmpty() || rn.failure.isEmpty()) {
+			if (rn.yes.isEmpty() || rn.no.isEmpty()) {
 				throw new RuleBadActionException(rn + "missing action");
 			}
 
-			if (!rn.success.startsWith(EMIT_PREFIX) && !ruleMap.containsKey(rn.success)) {
-				throw new RuleBadActionException(rn + " BAD success action " + rn.success);
+			if (!rn.yes.startsWith(EMIT_PREFIX) && !ruleMap.containsKey(rn.yes)) {
+				throw new RuleBadActionException(rn + " BAD yes action " + rn.yes);
 			}
 
-			if (!rn.failure.startsWith(EMIT_PREFIX) && !ruleMap.containsKey(rn.failure)) {
-				throw new RuleBadActionException(rn + " BAD failure action " + rn.failure);
+			if (!rn.no.startsWith(EMIT_PREFIX) && !ruleMap.containsKey(rn.no)) {
+				throw new RuleBadActionException(rn + " BAD no action " + rn.no);
 			}
 
 			try {
@@ -166,6 +173,13 @@ public class DecisionDag {
 		detectCycle();
 	}
 
+	/**
+	 * evaluate the rules on given input
+	 * 
+	 * @param vars
+	 * @return
+	 * @throws RulesException
+	 */
 	public String evaluate(Map<String, Object> vars) throws RulesException {
 		RuleNode rule = start;
 		String next;
@@ -180,6 +194,7 @@ public class DecisionDag {
 			if (evaluatedRules.contains(rule.name)) {
 				throw new CircularRulesException(evaluatedRules.toString() + "Form a cycle given: " + vars);
 			}
+			logger.trace(rule.toString());
 			try {
 				next = rule.nextAction(jVars);
 			} catch (JexlException je) {
@@ -192,28 +207,42 @@ public class DecisionDag {
 		if (!next.startsWith(EMIT_PREFIX)) {
 			throw new RuleBadActionException(next + " Rule could not be found");
 		}
+		String result = next.substring(EMIT_PREFIX.length());
+		logger.info(nvars + "-->"+evaluatedRules +" -> "+result);
 
-		return next.substring(EMIT_PREFIX.length());
+		return result;
 	}
 	
+	/**
+	 * white / gray / black coloring based DFS cycle detection
+	 * @param colorMap
+	 * @param rule
+	 * @throws CircularRulesException
+	 */
 	void dfs(Map<String, String> colorMap, RuleNode rule) throws CircularRulesException{
 		colorMap.put(rule.name, "GRAY");
-		if (!rule.success.startsWith(EMIT_PREFIX) ){
-			String color = colorMap.get(rule.success);
+		if (!rule.yes.startsWith(EMIT_PREFIX) ){
+			String color = colorMap.get(rule.yes);
 			if (color!=null && "GRAY".equals(color)){
-				throw new CircularRulesException(rule.name +" "+rule.success);
+				throw new CircularRulesException(
+						" ["+rule.name +"] "+ruleMap.get(rule.name) +" --> "
+						+" ["+rule.yes +"] "+ ruleMap.get(rule.yes));
 			}
-			dfs(colorMap, ruleMap.get(rule.success));		
+			dfs(colorMap, ruleMap.get(rule.yes));		
 		}
-		if (!rule.failure.startsWith(EMIT_PREFIX)){
-			String color = colorMap.get(rule.failure);
+		if (!rule.no.startsWith(EMIT_PREFIX)){
+			String color = colorMap.get(rule.no);
 			if (color!=null && "GRAY".equals(color)){
-				throw new CircularRulesException(rule.name +" "+rule.failure);
+				throw new CircularRulesException(rule.name +" "+rule.no);
 			}
-			dfs(colorMap, ruleMap.get(rule.failure));
+			dfs(colorMap, ruleMap.get(rule.no));
 		}
 		colorMap.put(rule.name, "BLACK");
 	}
+	/**
+	 * white / gray / black coloring based DFS cycle detection
+	 * @throws CircularRulesException
+	 */
 	void detectCycle() throws CircularRulesException{
 		Map<String, String> colorMap = new HashMap<String, String>();
 		for (Map.Entry<String, RuleNode> re : ruleMap.entrySet()) {
