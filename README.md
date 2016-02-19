@@ -14,6 +14,13 @@ https://github.com/mandarjog/decisionDag/blob/master/src/test/resources/com/mjog
 
 [![Tree](http://study.com/cimages/multimages/16/decision_tree.gif)](http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html)
 ```
+# Format  -- csv with semicolon as separator
+# <options rule label>;  predicate ; next_rule if predicate is true;  next_rule if predicate is false
+# predicate -- *must* evaluate to true or false
+# A result is returned by prefixing with ':'
+# So :Cinema will end the rule processing and return 'Cinema'
+
+
 # Implementing 
 # http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html
 
@@ -27,7 +34,7 @@ start; family_visiting=="yes"; :Cinema
 
 # Shows use of "in" and "not in" operators
 # following is "not in" operator
-weather !~ known_weathers: ERROR
+weather !~ known_weathers; :ERROR
 
 
 weather=="sunny"; :Play Tennis
