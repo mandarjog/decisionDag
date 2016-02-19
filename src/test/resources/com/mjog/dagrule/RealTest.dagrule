@@ -4,12 +4,20 @@
 var family_visiting
 var weather
 var money
+var known_weathers = ["sunny", "rainy", "windy" ]
+var rich_money = ["rich", "wealthy"]
 
 start; family_visiting=="yes"; :Cinema
 
+# Shows use of "in" and "not in" operators
+# following is "not in" operator
+weather !~ known_weathers: ERROR
+
+
 weather=="sunny"; :Play Tennis
 weather=="rainy"; :Stay In
-weather!="windy"; :ERROR
 
-money=="rich"; :Shopping
-money=="poor"; :Cinema; :ERROR
+# following is use of "in" operator
+# if 
+money =~ rich_money; :Shopping
+money == "poor"; :Cinema; :ERROR
