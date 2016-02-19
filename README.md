@@ -8,14 +8,13 @@ See tests for usage.
 
 -- Example
 
-https://github.com/mandarjog/decisionDag/blob/master/src/test/resources/com/mjog/dagrule/RealTest.dagrule
 
-[[Tree](http://study.com/cimages/multimages/16/decision_tree.gif)](http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html)
+[![Tree](http://study.com/cimages/multimages/16/decision_tree.gif)](http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html)
 ```
 # Format  -- csv with semicolon as separator
 # <optional rule label>;  predicate ; next_rule if predicate is true;  next_rule if predicate is false
 # predicate -- *must* evaluate to true or false
-# A result is returned by prefixing with ':'
+# A result is returned by prefixing it with ':'
 # So :Cinema will end the rule processing and return 'Cinema'
 # exactly one next_rule can be ommitted. The rule defined on the next line is chosen. 
 
@@ -44,3 +43,6 @@ weather=="rainy"; :Stay In
 money =~ rich_money; :Shopping
 money == "poor"; :Cinema; :ERROR
 ```
+
+[Test Case](https://github.com/mandarjog/decisionDag/blob/master/src/test/java/com/mjog/dagrule/RealTest.java)   
+and [Test Rule](https://github.com/mandarjog/decisionDag/blob/master/src/test/resources/com/mjog/dagrule/RealTest.dagrule)
