@@ -15,10 +15,11 @@ https://github.com/mandarjog/decisionDag/blob/master/src/test/resources/com/mjog
 [![Tree](http://study.com/cimages/multimages/16/decision_tree.gif)](http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html)
 ```
 # Format  -- csv with semicolon as separator
-# <options rule label>;  predicate ; next_rule if predicate is true;  next_rule if predicate is false
+# <optional rule label>;  predicate ; next_rule if predicate is true;  next_rule if predicate is false
 # predicate -- *must* evaluate to true or false
 # A result is returned by prefixing with ':'
 # So :Cinema will end the rule processing and return 'Cinema'
+# exactly one next_rule can be ommitted. The rule defined on the next line is chosen. 
 
 
 # Implementing 
