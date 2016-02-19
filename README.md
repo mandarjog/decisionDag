@@ -1,4 +1,6 @@
 # decisionDag
+[![Build Status](https://travis-ci.org/mandarjog/decisionDag.svg?branch=master)](https://travis-ci.org/mandarjog/decisionDag)
+
 DecisionDag with a DSL based on apache Jexl
 http://commons.apache.org/proper/commons-jexl/reference/syntax.html
 
