@@ -16,14 +16,15 @@ var rich_money = {"rich", "wealthy"}
 
 start; family_visiting=="yes"; :Cinema
 
-# Shows use of "in" and "not in" operators
-# following is "not in" operator
+# The "not in" operator is implemented as !~
+#  !known_weathers.contains(weather)
 weather !~ known_weathers; :ERROR
 
 
 weather=="sunny"; :Play Tennis
 weather=="rainy"; :Stay In
 
-# following is use of "in" operator =~
+# The "in" operator is implemented as =~
+# rich_money.contains(money) 
 money =~ rich_money; :Shopping
 money == "poor"; :Cinema; :ERROR
