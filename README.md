@@ -6,7 +6,7 @@ DecisionDag with a DSL based on [Commons Jexl](http://commons.apache.org/proper/
 
 See tests for usage.
 
--- Example
+## Example
 
 
 [![Tree](http://study.com/cimages/multimages/16/decision_tree.gif)](http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html)
