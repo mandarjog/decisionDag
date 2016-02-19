@@ -11,3 +11,30 @@ For a non-trivial test look at rule set
 and the corresponding test.
 
 https://github.com/mandarjog/decisionDag/blob/master/src/test/resources/com/mjog/dagrule/RealTest.dagrule
+
+[![Tree](http://study.com/cimages/multimages/16/decision_tree.gif)](http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html)
+```
+# Implementing 
+# http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html
+
+var family_visiting
+var weather
+var money
+var known_weathers = ["sunny", "rainy", "windy" ]
+var rich_money = ["rich", "wealthy"]
+
+start; family_visiting=="yes"; :Cinema
+
+# Shows use of "in" and "not in" operators
+# following is "not in" operator
+weather !~ known_weathers: ERROR
+
+
+weather=="sunny"; :Play Tennis
+weather=="rainy"; :Stay In
+
+# following is use of "in" operator
+# if 
+money =~ rich_money; :Shopping
+money == "poor"; :Cinema; :ERROR
+```
