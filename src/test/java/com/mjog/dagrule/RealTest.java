@@ -73,4 +73,12 @@ public class RealTest {
 		vars.put("money", "poor");
 		assertEquals("Cinema", rule.evaluate(vars));
 	}	
+	
+	@Test
+	public void test8() throws Exception{
+		vars.put("family_visiting", "no");
+		vars.put("weather", "cloudy");
+		vars.put("money", "poor");
+		assertEquals("ERROR", rule.evaluate(vars));
+	}	
 }
