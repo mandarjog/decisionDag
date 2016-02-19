@@ -28,8 +28,8 @@ https://github.com/mandarjog/decisionDag/blob/master/src/test/resources/com/mjog
 var family_visiting
 var weather
 var money
-var known_weathers = ["sunny", "rainy", "windy" ]
-var rich_money = ["rich", "wealthy"]
+var known_weathers = {"sunny", "rainy", "windy" }
+var rich_money = {"rich", "wealthy"}
 
 start; family_visiting=="yes"; :Cinema
 
