@@ -19,7 +19,7 @@ public class DecisionDagTest {
 		assertEquals("1", rx.evaluate(vars));
 		vars.put("v1", 3);
 		assertEquals("3", rx.evaluate(vars));
-		vars.put("v1", 4);
+		vars.put("v1", 5);
 		assertEquals("3", rx.evaluate(vars));
 	}
 
@@ -41,10 +41,29 @@ public class DecisionDagTest {
 	}
 	
 	@Test(expected = CircularRulesException.class)
-	public void testBasicCycle1() throws Exception {
-		String rules = 
+	public void testCycleCompiletime() throws Exception {
+		String rules = "var v1;\n"+
 				"start;v1==0; :0; \n" +
-				"v1<3;:1;start\n";
+				"v1<3;:1;\n"+
+				"v1>4;start;:3";
+		new DecisionDag(rules);
+	}
+	
+	@Test(expected = CircularRulesException.class)
+	public void testCycleCompiletime1() throws Exception {
+		String rules = "var v1;\n"+
+				"start;v1==0; :0; \n" +
+				"c;v1<3;:1;\n"+
+				"v1>4;c;:3";
+		new DecisionDag(rules);
+	}
+	
+	@Test(expected = CircularRulesException.class)
+	public void testCycleRuntime() throws Exception {
+		String rules = "var v1;\n"+
+				"start;v1==0; :0; \n" +
+				"v1<3;:1;\n"+
+				"v1>4;start;:3";
 		DecisionDag rx = new DecisionDag(rules, false);
 		simpleRuleAssertionsWithV1(rx);
 	}
@@ -98,7 +117,11 @@ public class DecisionDagTest {
 				"start;v1 == 0; :0; \n" +
 				"v1<3;:B;:10\n";
 		DecisionDag rx = new DecisionDag(rules);
-		assertEquals("10",rx.evaluate(null));
+		Map<String, Object> vars = new HashMap<String, Object>();
+		vars.put("v1", "0");
+		assertEquals("0",rx.evaluate(vars));
+		vars.put("v1", "5");
+		assertEquals("10",rx.evaluate(vars));
 	}
 
 	@Test(expected = RulesUndeclaredVariableException.class)
@@ -111,9 +134,9 @@ public class DecisionDagTest {
 	
 	@Test
 	public void testVarsContains() throws Exception {
-		String rules = "var list; ['ab', 'bc', 'de']\n" +
+		String rules = "var list = ['ab', 'bc', 'de']\n" +
 				"var v1;\n"+
-				"start;v1 =~ list; :MATCH; \n" +
+				"start;v1 =~ list; :MATCH\n" +
 				"v1 == 'xy'; :GOT XY; :SOMETHING ELSE";
 		// v1 =~ list  checks if v1 is contained in the list
 		DecisionDag rx = new DecisionDag(rules);
@@ -125,7 +148,16 @@ public class DecisionDagTest {
 		vars.put("v1", "zz");
 		assertEquals("SOMETHING ELSE", rx.evaluate(vars));
 	}
-	
+		
+	@Test
+	public void testUtilClass() throws Exception {
+		String rules = "var v1;\n"+
+				"var u=new('com.mjog.dagrule.TestUtil')\n"+
+				"start; u.hasVowel(v1); :FOUND; :NOTFOUND\n";
+		DecisionDag rx = new DecisionDag(rules);
+		Map<String, Object> vars = new HashMap<String, Object>();
+		vars.put("v1", "ab");
+		assertEquals("FOUND", rx.evaluate(vars));
+	}
 	// TODO Add compile time cycle detection
-	// TODO Add Util class injection
 }

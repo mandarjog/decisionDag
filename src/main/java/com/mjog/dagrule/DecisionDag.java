@@ -69,7 +69,7 @@ public class DecisionDag {
 			return name + ">> " + predicate + "?" + success + ":" + failure + "\n";
 		}
 	}
-	
+
 	public DecisionDag(String ruleStr) throws IOException, RulesException {
 		this(new StringReader(ruleStr), true);
 	}
@@ -88,15 +88,16 @@ public class DecisionDag {
 			name = StringUtils.trimToEmpty(name);
 			if (name.startsWith("var ")) {
 				// declaring a variable
-				String varname = name.substring("var ".length());
+				String[] sa = name.substring("var ".length()).split("=");
+				String varname = StringUtils.trimToEmpty(sa[0]);
 				Object varval = "";
-				if (csvRecord.size() > 1) {
-					varval = jexl.createExpression(csvRecord.get(1)).evaluate(null);
+				if (sa.length > 1) {
+					varval = jexl.createExpression(sa[1]).evaluate(null);
 				}
 				declVars.put(varname, varval);
 				continue;
 			}
-			
+
 			if (csvRecord.size() == 1) {
 				continue;
 			}
@@ -126,46 +127,45 @@ public class DecisionDag {
 			last = ruleNode;
 			ruleMap.put(ruleNode.name, ruleNode);
 		}
-		
-		if (validate){
+
+		if (validate) {
 			validate();
 		}
 	}
+
 	public DecisionDag(Reader csvData) throws IOException, RulesException {
 		this(csvData, true);
 	}
 
-	public void validate() throws RulesException{
+	public void validate() throws RulesException {
 		JexlContext vars = new MapContext(declVars);
 		// check if all targets are set and present
-		for (Map.Entry<String, RuleNode> re: ruleMap.entrySet()){
-				RuleNode rn = re.getValue();
-				if (rn.success.isEmpty() || rn.failure.isEmpty()) {
-					throw new RuleBadActionException(rn + "missing action");
-				}
-				
-				if (!rn.success.startsWith(EMIT_PREFIX) &&
-						!ruleMap.containsKey(rn.success)){
-					throw new RuleBadActionException(rn + " BAD success action "+rn.success);					
-				}
+		for (Map.Entry<String, RuleNode> re : ruleMap.entrySet()) {
+			RuleNode rn = re.getValue();
+			if (rn.success.isEmpty() || rn.failure.isEmpty()) {
+				throw new RuleBadActionException(rn + "missing action");
+			}
 
-				if (!rn.failure.startsWith(EMIT_PREFIX) &&
-						!ruleMap.containsKey(rn.failure)){
-					throw new RuleBadActionException(rn + " BAD failure action "+rn.failure);					
-				}
-				
-				try {
-					rn.nextAction(vars);
-				} catch (JexlException.Variable je){
-					throw new RulesUndeclaredVariableException("Error in rule " + rn + " " + je.getMessage() + "\nGiven: " + vars);					
-				} catch (JexlException je){
-					throw new RuleExpressionException("Error in rule " + rn + " " + je.getMessage() + "\nGiven: " + vars);
-				}
+			if (!rn.success.startsWith(EMIT_PREFIX) && !ruleMap.containsKey(rn.success)) {
+				throw new RuleBadActionException(rn + " BAD success action " + rn.success);
+			}
+
+			if (!rn.failure.startsWith(EMIT_PREFIX) && !ruleMap.containsKey(rn.failure)) {
+				throw new RuleBadActionException(rn + " BAD failure action " + rn.failure);
+			}
+
+			try {
+				rn.nextAction(vars);
+			} catch (JexlException.Variable je) {
+				throw new RulesUndeclaredVariableException(
+						"Error in rule " + rn + " " + je.getMessage() + "\nGiven: " + vars);
+			} catch (JexlException je) {
+				throw new RuleExpressionException("Error in rule " + rn + " " + je.getMessage() + "\nGiven: " + vars);
+			}
 		}
-		
-		
+		detectCycle();
 	}
-	
+
 	public String evaluate(Map<String, Object> vars) throws RulesException {
 		RuleNode rule = start;
 		String next;
@@ -189,10 +189,37 @@ public class DecisionDag {
 			rule = ruleMap.get(next);
 		} while (rule != null);
 
-		if (!next.startsWith(EMIT_PREFIX)){
-			throw new RuleBadActionException(next +" Rule could not be found");
+		if (!next.startsWith(EMIT_PREFIX)) {
+			throw new RuleBadActionException(next + " Rule could not be found");
 		}
 
 		return next.substring(EMIT_PREFIX.length());
+	}
+	
+	void dfs(Map<String, String> colorMap, RuleNode rule) throws CircularRulesException{
+		colorMap.put(rule.name, "GRAY");
+		if (!rule.success.startsWith(EMIT_PREFIX) ){
+			String color = colorMap.get(rule.success);
+			if (color!=null && "GRAY".equals(color)){
+				throw new CircularRulesException(rule.name +" "+rule.success);
+			}
+			dfs(colorMap, ruleMap.get(rule.success));		
+		}
+		if (!rule.failure.startsWith(EMIT_PREFIX)){
+			String color = colorMap.get(rule.failure);
+			if (color!=null && "GRAY".equals(color)){
+				throw new CircularRulesException(rule.name +" "+rule.failure);
+			}
+			dfs(colorMap, ruleMap.get(rule.failure));
+		}
+		colorMap.put(rule.name, "BLACK");
+	}
+	void detectCycle() throws CircularRulesException{
+		Map<String, String> colorMap = new HashMap<String, String>();
+		for (Map.Entry<String, RuleNode> re : ruleMap.entrySet()) {
+			if (!colorMap.containsKey(re.getKey())) {
+				dfs(colorMap, re.getValue());
+			}
+		}
 	}
 }
