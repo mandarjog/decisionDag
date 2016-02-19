@@ -153,11 +153,13 @@ public class DecisionDagTest {
 	public void testUtilClass() throws Exception {
 		String rules = "var v1;\n"+
 				"var u=new('com.mjog.dagrule.TestUtil')\n"+
-				"start; u.hasVowel(v1); :FOUND; :NOTFOUND\n";
+				"start; u.isLowerCase(v1); :YES; :NO\n";
 		DecisionDag rx = new DecisionDag(rules);
 		Map<String, Object> vars = new HashMap<String, Object>();
 		vars.put("v1", "ab");
-		assertEquals("FOUND", rx.evaluate(vars));
+		assertEquals("YES", rx.evaluate(vars));
+		vars.put("v1", "AB");
+		assertEquals("NO", rx.evaluate(vars));
 	}
 	// TODO Add compile time cycle detection
 }
