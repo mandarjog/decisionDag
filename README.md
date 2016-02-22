@@ -41,5 +41,5 @@ if money == 'poor' then :Cinema else :ERROR
 
 ```
 
-[Test Case](https://github.com/mandarjog/decisionDag/blob/master/src/test/groovy/com/mjog/dagrule/PasDSLTest.groovy)   
+[Test Case](https://github.com/mandarjog/decisionDag/blob/master/src/test/groovy/com/mjog/dagrule/RealTest.groovy)   
 and [Test Rule](https://github.com/mandarjog/decisionDag/blob/master/src/test/resources/com/mjog/dagrule/WeatherRules.pas)
