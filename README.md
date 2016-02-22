@@ -4,6 +4,14 @@
 DecisionDag with a DSL based on [Commons Jexl](http://commons.apache.org/proper/commons-jexl/reference/syntax.html)
 
 
+## Design Goals
+- Language should be easy to understand 
+- Trivial translation from a decision diagram
+- Enforce Loop detection
+- Ensure that only declared variables are used in decisions
+- Ability to defined constants
+- Ability inject Utility classes as beans.
+
 See tests for usage.
 
 ## Example
