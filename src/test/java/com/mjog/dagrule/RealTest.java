@@ -18,7 +18,7 @@ public class RealTest {
 	@BeforeClass
 	public static void setUp() throws FileNotFoundException, IOException, RulesException {
 		ClassLoader classLoader = RealTest.class.getClassLoader();
-		rule = new DecisionDag(new FileReader(classLoader.getResource("com/mjog/dagrule/RealTest.dagrule").getFile()));
+		rule = new CSVDSL().buildDecisionDag((new FileReader(classLoader.getResource("com/mjog/dagrule/RealTest.dagrule").getFile())), true);
 	}
 
 	@Before

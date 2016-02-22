@@ -7,8 +7,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
-public class DecisionDagTest {
+public class CSVDSLDecisionDagTest {
 	
+	static DSL dsl = new  CSVDSL();
 	void simpleRuleAssertionsWithV1(DecisionDag rx) throws Exception {
 		Map<String, Object> vars = new HashMap<String, Object>();
 		vars.put("v1", 0);
@@ -28,7 +29,7 @@ public class DecisionDagTest {
 		String rules = "var v1; 5\n"+
 				"v1==0; :0; \n" +
 				"v1<3;:1;:3\n";
-		DecisionDag rx = new DecisionDag(rules);
+		DecisionDag rx = dsl.buildDecisionDag(rules, true);
 		simpleRuleAssertionsWithV1(rx);
 	}
 
@@ -36,7 +37,7 @@ public class DecisionDagTest {
 	public void testEmptyLines() throws Exception {
 		String rules = "r1;v1==0; :0; \n\n\n" +
 				"v1<3;:1;:3\n";
-		DecisionDag rx = new DecisionDag(rules, false);
+		DecisionDag rx = dsl.buildDecisionDag(rules, false);
 		simpleRuleAssertionsWithV1(rx);
 	}
 	
@@ -46,7 +47,7 @@ public class DecisionDagTest {
 				"start;v1==0; :0; \n" +
 				"v1<3;:1;\n"+
 				"v1>4;start;:3";
-		new DecisionDag(rules);
+		dsl.buildDecisionDag(rules, true);
 	}
 	
 	@Test(expected = CircularRulesException.class)
@@ -55,7 +56,7 @@ public class DecisionDagTest {
 				"start;v1==0; :0; \n" +
 				"c;v1<3;:1;\n"+
 				"v1>4;c;:3";
-		new DecisionDag(rules);
+		dsl.buildDecisionDag(rules, true);
 	}
 	
 	@Test(expected = CircularRulesException.class)
@@ -64,7 +65,7 @@ public class DecisionDagTest {
 				"start;v1==0; :0; \n" +
 				"v1<3;:1;\n"+
 				"v1>4;start;:3";
-		DecisionDag rx = new DecisionDag(rules, false);
+		DecisionDag rx = dsl.buildDecisionDag(rules, false);
 		simpleRuleAssertionsWithV1(rx);
 	}
 	
@@ -73,7 +74,7 @@ public class DecisionDagTest {
 		String rules = 
 				"start;v1; :0; \n" +
 				"v1<3;:1;start\n";
-		DecisionDag rx = new DecisionDag(rules);
+		DecisionDag rx = dsl.buildDecisionDag(rules, true);
 		simpleRuleAssertionsWithV1(rx);
 	}
 	
@@ -82,7 +83,7 @@ public class DecisionDagTest {
 		String rules = 
 				"start;abc==20; :0; \n" +
 				"v1<3;:1;start\n";
-		DecisionDag rx = new DecisionDag(rules);
+		DecisionDag rx = dsl.buildDecisionDag(rules, true);
 		simpleRuleAssertionsWithV1(rx);
 	}
 	
@@ -91,7 +92,7 @@ public class DecisionDagTest {
 		String rules = 
 				"start;v1 in [200]; :0; \n" +
 				"v1<3;:1;start\n";
-		DecisionDag rx = new DecisionDag(rules);
+		DecisionDag rx = dsl.buildDecisionDag(rules, true);
 		simpleRuleAssertionsWithV1(rx);
 	}
 
@@ -100,7 +101,7 @@ public class DecisionDagTest {
 		String rules = "var v1;\n" +
 				"start;v1 == 0; :0; \n" +
 				"v1<3;;\n";
-		new DecisionDag(rules);
+		dsl.buildDecisionDag(rules, true);
 	}
 
 	@Test(expected = RuleBadActionException.class)
@@ -108,7 +109,7 @@ public class DecisionDagTest {
 		String rules = 
 				"start;v1 == 0; 0; \n" +
 				"v1<3;B;:10\n";
-		new DecisionDag(rules);
+		dsl.buildDecisionDag(rules, true);
 	}
 
 	@Test
@@ -116,7 +117,7 @@ public class DecisionDagTest {
 		String rules = "var v1\n" +
 				"start;v1 == 0; :0; \n" +
 				"v1<3;:B;:10\n";
-		DecisionDag rx = new DecisionDag(rules);
+		DecisionDag rx = dsl.buildDecisionDag(rules, true);
 		Map<String, Object> vars = new HashMap<String, Object>();
 		vars.put("v1", "0");
 		assertEquals("0",rx.evaluate(vars));
@@ -129,7 +130,7 @@ public class DecisionDagTest {
 		String rules = "var v0;\n" +
 				"start;v1 == 0; :0; \n" +
 				"v1<3;:B;:10\n";
-		new DecisionDag(rules);
+		dsl.buildDecisionDag(rules, true);
 	}
 	
 	@Test
@@ -139,7 +140,7 @@ public class DecisionDagTest {
 				"start;v1 =~ list; :MATCH\n" +
 				"v1 == 'xy'; :GOT XY; :SOMETHING ELSE";
 		// v1 =~ list  checks if v1 is contained in the list
-		DecisionDag rx = new DecisionDag(rules);
+		DecisionDag rx = dsl.buildDecisionDag(rules, true);
 		Map<String, Object> vars = new HashMap<String, Object>();
 		vars.put("v1", "ab");
 		assertEquals("MATCH", rx.evaluate(vars));
@@ -154,7 +155,7 @@ public class DecisionDagTest {
 		String rules = "var v1;\n"+
 				"var u=new('com.mjog.dagrule.TestUtil')\n"+
 				"start; u.isLowerCase(v1); :YES; :NO\n";
-		DecisionDag rx = new DecisionDag(rules);
+		DecisionDag rx = dsl.buildDecisionDag(rules, true);
 		Map<String, Object> vars = new HashMap<String, Object>();
 		vars.put("v1", "ab");
 		assertEquals("YES", rx.evaluate(vars));
