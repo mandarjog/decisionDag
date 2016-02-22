@@ -13,6 +13,36 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class PasDSLTest {
+
+	static DSL dsl;
+	@BeforeClass
+	public static void setUp() throws FileNotFoundException, IOException, RulesException {
+		dsl = new  PasDSL();
+	}
+	void simpleRuleAssertionsWithV1(DecisionDag rx) throws Exception {
+		Map<String, Object> vars = new HashMap<String, Object>();
+		vars.put("v1", 0);
+		assertEquals("0", rx.evaluate(vars));
+		vars.put("v1", 1);
+		assertEquals("1", rx.evaluate(vars));
+		vars.put("v1", 2);
+		assertEquals("1", rx.evaluate(vars));
+		vars.put("v1", 3);
+		assertEquals("3", rx.evaluate(vars));
+		vars.put("v1", 5);
+		assertEquals("3", rx.evaluate(vars));
+	}
+
+	@Test
+	public void testBasicRule1() throws Exception {
+		String rules = 
+		        "var v1 = 5\n"+
+				"if v1==0 then :0\n" +
+				"if v1<3 then :1 else :3\n";
+		DecisionDag rx = dsl.buildDecisionDag(rules, true);
+		simpleRuleAssertionsWithV1(rx);
+	}
+	
 	@Test
 	public void test_var1() {
 		assert [type:'var', varname:'a', value:null] == PasDSL.parseLine("var a\n");

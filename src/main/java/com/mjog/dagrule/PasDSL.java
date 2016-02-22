@@ -21,6 +21,7 @@ public class PasDSL implements DSL{
 	
 	public static Map<String, String> parseLine(String line){
 		Map<String, String> ret = new HashMap<String, String>();
+		ret.put("type", "UNKNOWN");
 		Matcher m = vars.matcher(line);
 		if (m.matches()) {
 			ret.put("type", "var");
@@ -58,7 +59,43 @@ public class PasDSL implements DSL{
 	@Override
 	public DecisionDag buildDecisionDag(Reader reader, boolean validate) throws IOException, RulesException {
 		LineNumberReader ln = new LineNumberReader(reader);
-		return null;	
+		DecisionDag dag = new DecisionDag();
+		RuleNode last = null;
+		int ruleNo = 0;
+		for (String line=ln.readLine(); line!=null; line=ln.readLine()){
+			line = StringUtils.trimToEmpty(line);
+			if (line.isEmpty()) {
+				continue;
+			}
+			Map<String, String> cfg = parseLine(line);
+			switch (cfg.get("type")) {
+			case "var":
+				String value = cfg.get("value");
+				Object varval = value==null?"":DecisionDag.jexl.createExpression(value).evaluate(null);
+				dag.declVars.put(cfg.get("varname"), varval);
+				break;
+			case "comment":
+				break;
+			case "rule":
+				String name = cfg.get("name");
+				name = (name == null)?"auto_"+ln.getLineNumber() : name;
+				RuleNode ruleNode = new RuleNode(name, cfg.get("if"), cfg.get("then"), cfg.get("else"), ruleNo);
+				ruleNo ++;
+				if (dag.start == null) {
+					dag.start = ruleNode;
+				}
+				if (last != null) {
+					last.setActionIfEmpty(ruleNode.name);
+				}
+				last = ruleNode;
+				dag.ruleMap.put(ruleNode.name, ruleNode);
+				break;
+			}
+		}
+		if (validate) {
+			dag.validate();
+		}		
+		return dag;	
 	} 
 	@Override
 	public DecisionDag buildDecisionDag(String str, boolean validate) throws IOException, RulesException {
