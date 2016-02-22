@@ -13,11 +13,11 @@ import org.apache.commons.lang3.StringUtils;
 public class PasDSL implements DSL{
 	static Pattern comment = Pattern.compile("\\s*//(.*)");
 	// groups 1, 3
-	static Pattern vars = Pattern.compile("\\s*var\\s*(\\p{Alnum}*)\\s*(=(.*))?\\s*(;)?\\s*");
+	static Pattern vars = Pattern.compile("\\s*var\\s*(\\w*)\\s*(=(.*))?\\s*(;)?\\s*");
 	// groups 2, 3, 4, 5
-	static Pattern ifthenelse = Pattern.compile("\\s*((\\p{Alnum}*)?\\s*?;)?\\s*?if(.+?)then(.*?)else(.*)");
+	static Pattern ifthenelse = Pattern.compile("\\s*((\\w*)?\\s*?;)?\\s*?if(.+?)then(.*?)else(.*)");
 	// groups 2, 3, 4
-	static Pattern ifthen = Pattern.compile("\\s*((\\p{Alnum}*)?\\s*?;)?\\s*?if(.+?)then(.*)");
+	static Pattern ifthen = Pattern.compile("\\s*((\\w*)?\\s*?;)?\\s*?if(.+?)then(.*)");
 	
 	public static Map<String, String> parseLine(String line){
 		Map<String, String> ret = new HashMap<String, String>();
