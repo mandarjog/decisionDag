@@ -6,6 +6,7 @@ DecisionDag with a DSL based on [Commons Jexl](http://commons.apache.org/proper/
 
 ## Design Goals
 - Language should be easy to understand 
+-- The mythical *business user* should be able to use it without assistance
 - Trivial translation from a decision diagram
 - Enforce Loop detection
 - Ensure that only declared variables are used in decisions
