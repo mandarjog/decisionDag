@@ -14,6 +14,7 @@ See tests for usage.
 
 // A result is returned by prefixing it with ':'
 // So :Cinema will end the rule processing and return 'Cinema'
+// Otherwise it is interpreted as the name of a rule to execute next.
 
 // Implementing 
 // http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html
