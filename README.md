@@ -10,38 +10,36 @@ See tests for usage.
 
 
 [![Tree](http://study.com/cimages/multimages/16/decision_tree.gif)](http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html)
-```
-# Format  -- csv with semicolon as separator
-# <optional rule label>;  predicate ; next_rule if predicate is true;  next_rule if predicate is false
-# predicate -- *must* evaluate to true or false
-# A result is returned by prefixing it with ':'
-# So :Cinema will end the rule processing and return 'Cinema'
-# exactly one next_rule can be ommitted. The rule defined on the next line is chosen. 
+```pascal
 
+// A result is returned by prefixing it with ':'
+// So :Cinema will end the rule processing and return 'Cinema'
 
-# Implementing 
-# http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html
+// Implementing 
+// http://study.com/academy/lesson/what-is-a-decision-tree-examples-advantages-role-in-management.html
 
-var family_visiting
+var family_visiting;
 var weather
 var money
 var known_weathers = {"sunny", "rainy", "windy" }
 var rich_money = {"rich", "wealthy"}
 
-start; family_visiting=="yes"; :Cinema
+start; if family_visiting=='yes' then :Cinema
 
-# The "not in" operator is implemented as !~
-#  !known_weathers.contains(weather)
-weather !~ known_weathers; :ERROR
+// The "not in" operator is implemented as !~
+//  !known_weathers.contains(weather)
+
+if weather !~ known_weathers then :ERROR
 
 
-weather=="sunny"; :Play Tennis
-weather=="rainy"; :Stay In
+if weather=='sunny' then :Play Tennis
+if weather=='rainy' then :Stay In
 
-# The "in" operator is implemented as =~
-# rich_money.contains(money) 
-money =~ rich_money; :Shopping
-money == "poor"; :Cinema; :ERROR
+// The "in" operator is implemented as =~
+// rich_money.contains(money) 
+if money =~ rich_money then :Shopping
+if money == 'poor' then :Cinema else :ERROR
+
 ```
 
 [Test Case](https://github.com/mandarjog/decisionDag/blob/master/src/test/java/com/mjog/dagrule/RealTest.java)   
