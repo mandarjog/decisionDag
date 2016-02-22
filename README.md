@@ -9,8 +9,8 @@ DecisionDag with a DSL based on [Commons Jexl](http://commons.apache.org/proper/
 - Trivial translation from a decision diagram
 - Enforce Loop detection
 - Ensure that only declared variables are used in decisions
-- Ability to defined constants
-- Ability inject Utility classes as beans.
+- Ability to define constants
+- Ability inject utility classes for use in expression.
 
 See tests for usage.
 
