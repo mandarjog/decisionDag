@@ -1,6 +1,6 @@
 # decisionDag
 [![Build Status](https://travis-ci.org/mandarjog/decisionDag.svg?branch=master)](https://travis-ci.org/mandarjog/decisionDag)
-
+[![codecov.io](https://codecov.io/github/mandarjog/decisionDag/coverage.svg?branch=master)](https://codecov.io/github/mandarjog/decisionDag)
 DecisionDag with a DSL based on [Commons Jexl](http://commons.apache.org/proper/commons-jexl/reference/syntax.html)
 
 
