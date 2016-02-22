@@ -11,13 +11,17 @@ class RuleNode {
 	String yes;
 	String no;
 	String name;
+	String line;
+	int lineNumber;
 
-	public RuleNode(String name, String predicate, String yes, String no, int ruleNo)
+	public RuleNode(String name, String predicate, String yes, String no, int ruleNo, String line, int lineNumber)
 			throws RulesException {
 		this.predicate = StringUtils.trimToEmpty(predicate);
 		this.yes = StringUtils.trimToEmpty(yes);
 		this.no = StringUtils.trimToEmpty(no);
 		this.name = StringUtils.trimToEmpty(name);
+		this.line = line;
+		this.lineNumber = lineNumber;
 		try {
 			this.expr = DecisionDag.jexl.createExpression(this.predicate);
 		} catch (JexlException.Parsing pe) {
@@ -44,6 +48,6 @@ class RuleNode {
 	}
 
 	public String toString() {
-		return predicate + "?" + yes + ":" + no + "\n";
+		return "["+name+"] if "+predicate + " then " + yes + " else " + no + " {line: "+lineNumber+", source line:" +line+"}\n";
 	}
 }

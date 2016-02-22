@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 public class PasDSL implements DSL{
 	static Pattern comment = Pattern.compile("\\s*//(.*)");
 	// groups 1, 3
-	static Pattern vars = Pattern.compile("\\s*var\\s*(\\p{Alnum}*)\\s*(=(.*))?\\s*");
+	static Pattern vars = Pattern.compile("\\s*var\\s*(\\p{Alnum}*)\\s*(=(.*))?\\s*(;)?\\s*");
 	// groups 2, 3, 4, 5
 	static Pattern ifthenelse = Pattern.compile("\\s*((\\p{Alnum}*)?\\s*?;)?\\s*?if(.+?)then(.*?)else(.*)");
 	// groups 2, 3, 4
@@ -79,7 +79,7 @@ public class PasDSL implements DSL{
 			case "rule":
 				String name = cfg.get("name");
 				name = (name == null)?"auto_"+ln.getLineNumber() : name;
-				RuleNode ruleNode = new RuleNode(name, cfg.get("if"), cfg.get("then"), cfg.get("else"), ruleNo);
+				RuleNode ruleNode = new RuleNode(name, cfg.get("if"), cfg.get("then"), cfg.get("else"), ruleNo, line, ln.getLineNumber());
 				ruleNo ++;
 				if (dag.start == null) {
 					dag.start = ruleNode;
@@ -90,6 +90,9 @@ public class PasDSL implements DSL{
 				last = ruleNode;
 				dag.ruleMap.put(ruleNode.name, ruleNode);
 				break;
+			default:
+				// nothing matched
+				throw new DSLParseException("Could not process line #"+ln.getLineNumber()+" >> "+line);
 			}
 		}
 		if (validate) {

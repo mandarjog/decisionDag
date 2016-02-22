@@ -53,7 +53,7 @@ public class CSVDSL implements DSL {
 				name = "";
 			}
 			name = name.isEmpty() ? "auto_" + csvRecord.getRecordNumber() : name;
-			RuleNode ruleNode = new RuleNode(name, predicate, yes, no, ruleNo);
+			RuleNode ruleNode = new RuleNode(name, predicate, yes, no, ruleNo, "", ruleNo);
 			ruleNo++;
 			if (dag.start == null) {
 				dag.start = ruleNode;
