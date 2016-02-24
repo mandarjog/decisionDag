@@ -112,6 +112,14 @@ public class CSVDSLDecisionDagTest {
 		dsl.buildDecisionDag(rules, true);
 	}
 
+	@Test(expected = RulesException.class)
+	public void testEmptyDAG() throws Exception {
+		String rules = 
+				"var a\n" +
+				"var b\n";
+		dsl.buildDecisionDag(rules, true);
+	}
+	
 	@Test
 	public void testVarDecl() throws Exception {
 		String rules = "var v1\n" +
@@ -135,7 +143,7 @@ public class CSVDSLDecisionDagTest {
 	
 	@Test
 	public void testVarsContains() throws Exception {
-		String rules = "var list = ['ab', 'bc', 'de']\n" +
+		String rules = "var list = {'ab', 'bc', 'de'}\n" +
 				"var v1;\n"+
 				"start;v1 =~ list; :MATCH\n" +
 				"v1 == 'xy'; :GOT XY; :SOMETHING ELSE";

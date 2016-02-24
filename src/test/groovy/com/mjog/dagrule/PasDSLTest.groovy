@@ -64,6 +64,15 @@ public class PasDSLTest {
 		dsl.buildDecisionDag(rules, true);
 	}
 
+	
+	public void testCycleCompiletime2() throws Exception {
+		String rules = "var v1\n"+
+				"start; if v1==0 then :0 \n" +
+				"c; if v1<3 then :1 else d\n"+
+				"if v1>4 then :44 else :3";
+		dsl.buildDecisionDag(rules, true);
+	}
+
 	@Test(expected = CircularRulesException.class)
 	public void testCycleRuntime() throws Exception {
 		String rules = "var v1\n"+
@@ -130,10 +139,10 @@ public class PasDSLTest {
 				"start; if v1 == 0 then :0 \n" +
 				"if v1<3 then :B else :10\n";
 		DecisionDag rx = dsl.buildDecisionDag(rules, true);
-    assert "0" == rx.evaluate([v1: "0"])
-    assert "10" == rx.evaluate([v1: "5"])
+        assert "0" == rx.evaluate([v1: "0"])
+        assert "10" == rx.evaluate([v1: "5"])
 	}
-
+	
 	@Test(expected = RulesUndeclaredVariableException.class)
 	public void testUndelcaredVars() throws Exception {
 		String rules = "var v0;\n" +

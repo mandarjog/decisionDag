@@ -27,6 +27,10 @@ public class DecisionDag {
 		
 	}
 	public void validate() throws RulesException {
+		
+		if (start == null || ruleMap.size() == 0) {
+			throw new RulesException("Empty DAG; nothing to evaluate");
+		}
 		JexlContext vars = new MapContext(declVars);
 		// check if all targets are set and present
 		for (Map.Entry<String, RuleNode> re : ruleMap.entrySet()) {
