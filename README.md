@@ -8,7 +8,7 @@ DecisionDag with a DSL based on [Commons Jexl](http://commons.apache.org/proper/
 - Language should be easy to understand 
 -- The mythical *business user* should be able to use it without assistance
 - Trivial translation from a decision diagram
-- Enforce Loop detection
+- Enforce Acyclic nature via Loop detection
 - Ensure that only declared variables are used in decisions
 - Ability to define constants
 - Ability inject utility classes for use in expression.
